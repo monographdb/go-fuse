@@ -450,7 +450,21 @@ func doStatFs(server *Server, req *request) {
 }
 
 func doIoctl(server *Server, req *request) {
-	req.status = ENOSYS
+	var buf []byte
+	in := (*IoctlIn)(req.inData)
+	out := (*_IoctlOut)(req.outData())
+	if in.InSize > 0 {
+		buf = req.arg
+	} else if in.OutSize > 0 {
+		outputsize := unsafe.Sizeof(_IoctlOut{})
+		if uintptr(in.OutSize) <= outputHeaderSize-sizeOfOutHeader-outputsize {
+			buf = req.outBuf[sizeOfOutHeader+outputsize : sizeOfOutHeader+outputsize+uintptr(in.OutSize)]
+		} else {
+			buf = server.allocOut(req, in.OutSize)
+		}
+		req.flatData = buf
+	}
+	out.Result = int32(server.fileSystem.Ioctl(req.cancel, in, buf))
 }
 
 func doDestroy(server *Server, req *request) {
@@ -583,7 +597,7 @@ func init() {
 		_OP_CREATE:          unsafe.Sizeof(CreateIn{}),
 		_OP_INTERRUPT:       unsafe.Sizeof(InterruptIn{}),
 		_OP_BMAP:            unsafe.Sizeof(_BmapIn{}),
-		_OP_IOCTL:           unsafe.Sizeof(_IoctlIn{}),
+		_OP_IOCTL:           unsafe.Sizeof(IoctlIn{}),
 		_OP_POLL:            unsafe.Sizeof(_PollIn{}),
 		_OP_NOTIFY_REPLY:    unsafe.Sizeof(NotifyRetrieveIn{}),
 		_OP_FALLOCATE:       unsafe.Sizeof(FallocateIn{}),
@@ -766,7 +780,7 @@ func init() {
 		_OP_LISTXATTR:       func(ptr unsafe.Pointer) interface{} { return (*GetXAttrIn)(ptr) },
 		_OP_SETATTR:         func(ptr unsafe.Pointer) interface{} { return (*SetAttrIn)(ptr) },
 		_OP_INIT:            func(ptr unsafe.Pointer) interface{} { return (*InitIn)(ptr) },
-		_OP_IOCTL:           func(ptr unsafe.Pointer) interface{} { return (*_IoctlIn)(ptr) },
+		_OP_IOCTL:           func(ptr unsafe.Pointer) interface{} { return (*IoctlIn)(ptr) },
 		_OP_OPEN:            func(ptr unsafe.Pointer) interface{} { return (*OpenIn)(ptr) },
 		_OP_MKNOD:           func(ptr unsafe.Pointer) interface{} { return (*MknodIn)(ptr) },
 		_OP_CREATE:          func(ptr unsafe.Pointer) interface{} { return (*CreateIn)(ptr) },

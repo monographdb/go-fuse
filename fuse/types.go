@@ -366,7 +366,7 @@ const (
 	FUSE_IOCTL_RETRY        = (1 << 2)
 )
 
-type _IoctlIn struct {
+type IoctlIn struct {
 	InHeader
 	Fh      uint64
 	Flags   uint32
