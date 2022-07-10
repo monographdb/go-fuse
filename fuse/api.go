@@ -292,7 +292,7 @@ type RawFileSystem interface {
 
 	StatFs(cancel <-chan struct{}, input *InHeader, out *StatfsOut) (code Status)
 
-	Ioctl(cancel <-chan struct{}, in *IoctlIn, data []byte) Status
+	Ioctl(cancel <-chan struct{}, in *IoctlIn, out *IoctlOut, bufIn, bufOut []byte) Status
 
 	// This is called on processing the first request. The
 	// filesystem implementation can use the server argument to

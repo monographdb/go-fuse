@@ -450,21 +450,21 @@ func doStatFs(server *Server, req *request) {
 }
 
 func doIoctl(server *Server, req *request) {
-	var buf []byte
 	in := (*IoctlIn)(req.inData)
-	out := (*_IoctlOut)(req.outData())
+	out := (*IoctlOut)(req.outData())
+	var bufIn, bufOut []byte
 	if in.InSize > 0 {
-		buf = req.arg
+		bufIn = req.arg
 	} else if in.OutSize > 0 {
-		outputsize := unsafe.Sizeof(_IoctlOut{})
+		outputsize := unsafe.Sizeof(IoctlOut{})
 		if uintptr(in.OutSize) <= outputHeaderSize-sizeOfOutHeader-outputsize {
-			buf = req.outBuf[sizeOfOutHeader+outputsize : sizeOfOutHeader+outputsize+uintptr(in.OutSize)]
+			bufOut = req.outBuf[sizeOfOutHeader+outputsize : sizeOfOutHeader+outputsize+uintptr(in.OutSize)]
 		} else {
-			buf = server.allocOut(req, in.OutSize)
+			bufOut = server.allocOut(req, in.OutSize)
 		}
-		req.flatData = buf
+		req.flatData = bufOut
 	}
-	out.Result = int32(server.fileSystem.Ioctl(req.cancel, in, buf))
+	req.status = server.fileSystem.Ioctl(req.cancel, in, out, bufIn, bufOut)
 }
 
 func doDestroy(server *Server, req *request) {
@@ -630,7 +630,7 @@ func init() {
 		_OP_GETLK:                 unsafe.Sizeof(LkOut{}),
 		_OP_CREATE:                unsafe.Sizeof(CreateOut{}),
 		_OP_BMAP:                  unsafe.Sizeof(_BmapOut{}),
-		_OP_IOCTL:                 unsafe.Sizeof(_IoctlOut{}),
+		_OP_IOCTL:                 unsafe.Sizeof(IoctlOut{}),
 		_OP_POLL:                  unsafe.Sizeof(_PollOut{}),
 		_OP_NOTIFY_INVAL_ENTRY:    unsafe.Sizeof(NotifyInvalEntryOut{}),
 		_OP_NOTIFY_INVAL_INODE:    unsafe.Sizeof(NotifyInvalInodeOut{}),

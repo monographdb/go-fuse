@@ -167,6 +167,6 @@ func (fs *defaultRawFileSystem) Lseek(cancel <-chan struct{}, in *LseekIn, out *
 	return ENOSYS
 }
 
-func (fs *defaultRawFileSystem) Ioctl(cancel <-chan struct{}, in *IoctlIn, data []byte) Status {
+func (fs *defaultRawFileSystem) Ioctl(cancel <-chan struct{}, in *IoctlIn, out *IoctlOut, bufIn, bufOut []byte) Status {
 	return ENOSYS
 }

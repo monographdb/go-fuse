@@ -376,7 +376,7 @@ type IoctlIn struct {
 	OutSize uint32
 }
 
-type _IoctlOut struct {
+type IoctlOut struct {
 	Result  int32
 	Flags   uint32
 	InIovs  uint32
