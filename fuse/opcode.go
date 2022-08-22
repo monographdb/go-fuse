@@ -452,13 +452,10 @@ func doStatFs(server *Server, req *request) {
 func doIoctl(server *Server, req *request) {
 	in := (*IoctlIn)(req.inData)
 	out := (*IoctlOut)(req.outData())
-	bufIn := req.arg
-	var bufOut []byte
 	if in.OutSize > 0 {
-		bufOut := server.allocOut(req, in.OutSize)
-		req.flatData = bufOut
+		req.flatData = server.allocOut(req, in.OutSize)
 	}
-	req.status = server.fileSystem.Ioctl(req.cancel, in, out, bufIn, bufOut)
+	req.status = server.fileSystem.Ioctl(req.cancel, in, out, req.arg, req.flatData)
 }
 
 func doDestroy(server *Server, req *request) {
