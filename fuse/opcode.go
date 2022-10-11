@@ -103,17 +103,11 @@ func doInit(server *Server, req *request) {
 		server.kernelSettings.Flags |= CAP_WRITEBACK_CACHE
 	}
 
-	dataCacheMode := input.Flags & CAP_AUTO_INVAL_DATA
 	if server.opts.ExplicitDataCacheControl {
-		// we don't want CAP_AUTO_INVAL_DATA even if we cannot go into fully explicit mode
-		dataCacheMode = 0
-
-		explicit := input.Flags & CAP_EXPLICIT_INVAL_DATA
-		if explicit != 0 {
-			dataCacheMode = explicit
-		}
+		server.kernelSettings.Flags |= input.Flags & CAP_EXPLICIT_INVAL_DATA
+	} else if server.opts.AutoInvalData {
+		server.kernelSettings.Flags |= input.Flags & CAP_AUTO_INVAL_DATA
 	}
-	server.kernelSettings.Flags |= dataCacheMode
 
 	if input.Minor >= 13 {
 		server.setSplice()
