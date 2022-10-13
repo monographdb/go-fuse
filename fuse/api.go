@@ -161,9 +161,6 @@ type MountOptions struct {
 	// you must implement the GetLk/SetLk/SetLkw methods.
 	EnableLocks bool
 
-	// If set, ask kernel to issue getattr before every read operation.
-	AutoInvalData bool
-
 	// If set, ask kernel not to do automatic data cache invalidation.
 	// The filesystem is fully responsible for invalidating data cache.
 	ExplicitDataCacheControl bool
