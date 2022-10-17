@@ -450,6 +450,10 @@ func doStatFs(server *Server, req *request) {
 }
 
 func doIoctl(server *Server, req *request) {
+	if !server.opts.EnableIoctl {
+		req.status = ENOSYS
+		return
+	}
 	in := (*IoctlIn)(req.inData)
 	out := (*IoctlOut)(req.outData())
 	if in.OutSize > 0 {

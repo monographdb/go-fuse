@@ -183,6 +183,8 @@ type MountOptions struct {
 
 	// EnableWriteback enables kernel writeback cache.
 	EnableWriteback bool
+
+	EnableIoctl bool
 }
 
 // RawFileSystem is an interface close to the FUSE wire protocol.
