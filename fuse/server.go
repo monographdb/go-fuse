@@ -22,8 +22,8 @@ const (
 	// The kernel caps writes at 128k.
 	MAX_KERNEL_WRITE = 128 * 1024
 
-	minMaxReaders = 2
-	maxMaxReaders = 16
+	minMaxReaders = 1
+	maxMaxReaders = 4
 
 	DEFAULT_MAX_PAGES = 32
 	MAX_MAX_PAGES     = 256
