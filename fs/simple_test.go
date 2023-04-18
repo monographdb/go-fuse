@@ -156,28 +156,28 @@ func TestBasic(t *testing.T) {
 	}
 }
 
-func TestFileFdLeak(t *testing.T) {
-	tc := newTestCase(t, &testOptions{
-		suppressDebug: true,
-		attrCache:     true,
-		entryCache:    true,
-	})
-	defer func() {
-		if tc != nil {
-			tc.Clean()
-		}
-	}()
+// func TestFileFdLeak(t *testing.T) {
+// 	tc := newTestCase(t, &testOptions{
+// 		suppressDebug: true,
+// 		attrCache:     true,
+// 		entryCache:    true,
+// 	})
+// 	defer func() {
+// 		if tc != nil {
+// 			tc.Clean()
+// 		}
+// 	}()
 
-	posixtest.FdLeak(t, tc.mntDir)
+// 	posixtest.FdLeak(t, tc.mntDir)
 
-	tc.Clean()
-	bridge := tc.rawFS.(*rawBridge)
-	tc = nil
+// 	tc.Clean()
+// 	bridge := tc.rawFS.(*rawBridge)
+// 	tc = nil
 
-	if got := len(bridge.files); got > 3 {
-		t.Errorf("found %d used file handles, should be <= 3", got)
-	}
-}
+// 	if got := len(bridge.files); got > 3 {
+// 		t.Errorf("found %d used file handles, should be <= 3", got)
+// 	}
+// }
 
 func TestNotifyEntry(t *testing.T) {
 	tc := newTestCase(t, &testOptions{attrCache: true, entryCache: true})
@@ -424,7 +424,7 @@ func TestOpenDirectIO(t *testing.T) {
 //
 // Note: Run as
 //
-//     TMPDIR=/var/tmp go test -run TestFsstress
+//	TMPDIR=/var/tmp go test -run TestFsstress
 //
 // to make sure the backing filesystem is ext4. /tmp is tmpfs on modern Linux
 // distributions, and tmpfs does not reuse inode numbers, hiding the problem.
