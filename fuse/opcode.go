@@ -740,6 +740,7 @@ func init() {
 		_OP_COPY_FILE_RANGE: doCopyFileRange,
 		_OP_LSEEK:           doLseek,
 	} {
+		handler := v
 		operationHandlers[op].Func = func(s *Server, r *request) {
 			defer func() {
 				if e := recover(); e != nil {
@@ -747,7 +748,7 @@ func init() {
 					log.Printf("raw filesystem recovered, io error: %v\nstacktrace: \n%s", e, string(debug.Stack()))
 				}
 			}()
-			v(s, r)
+			handler(s, r)
 		}
 	}
 
