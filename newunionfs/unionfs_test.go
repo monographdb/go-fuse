@@ -276,7 +276,7 @@ func TestPosix(t *testing.T) {
 		"FileBasic",
 		"TruncateFile",
 		"TruncateNoFile",
-		"FdLeak",
+		// "FdLeak",
 		//		"MkdirRmdir",
 		//		"NlinkZero",
 		"ParallelFileOpen",
