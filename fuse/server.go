@@ -30,7 +30,7 @@ const (
 	defaultMaxWrite = 128 * 1024 // 128 kiB
 
 	minMaxReaders = 1
-	maxMaxReaders = 4
+	maxMaxReaders = 1024
 
 	DEFAULT_MAX_PAGES = 32
 	MAX_MAX_PAGES     = 256
@@ -78,6 +78,7 @@ type Server struct {
 	singleReader bool
 	canSplice    bool
 	loops        sync.WaitGroup
+	loopCnt      atomic.Int32
 	writes       int64
 	shutdown     bool
 
@@ -186,7 +187,7 @@ func NewServer(fs RawFileSystem, mountPoint string, opts *MountOptions) (*Server
 		}
 	}
 
-	maxReaders := runtime.GOMAXPROCS(0)
+	maxReaders := runtime.GOMAXPROCS(0) * 16
 	if maxReaders < minMaxReaders {
 		maxReaders = minMaxReaders
 	} else if maxReaders > maxMaxReaders {
@@ -657,6 +658,8 @@ func (ms *Server) handleInit() Status {
 
 func (ms *Server) loop(exitIdle bool) {
 	defer ms.loops.Done()
+	log.Printf("new fuse server loop %d", ms.loopCnt.Add(1))
+	var reqCnt uint
 exit:
 	for {
 		req, errNo := ms.readRequest(exitIdle)
@@ -682,8 +685,10 @@ exit:
 			go ms.handleRequest(req)
 		} else {
 			ms.handleRequest(req)
+			reqCnt++
 		}
 	}
+	log.Printf("exit fuse server loop %d, reqs %d", ms.loopCnt.Add(-1), reqCnt)
 }
 
 func (ms *Server) handleRequest(req *request) Status {
