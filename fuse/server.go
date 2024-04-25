@@ -293,49 +293,13 @@ func (ms *Server) sendFd(path string) {
 	*(*InitIn)(unsafe.Pointer(&buf[0])) = ms.kernelSettings
 
 	for {
-		time.Sleep(time.Second)
-		c, err := net.Dial("unix", path)
-		if err != nil {
-			log.Println(err)
-			continue
+		err := sendFuseFd(path, buf, ms.mountFd)
+		if err == nil {
+			break
 		}
-		via := c.(*net.UnixConn)
-		_, fds, err := getFd(via, 2)
-		if err != nil {
-			c.Close()
-			continue
-		}
-		syscall.Close(fds[0])
-		if len(fds) < 2 {
-			putFd(via, buf, ms.mountFd)
-		} else {
-			syscall.Close(fds[1])
-		}
-		// wait for supervisor
-		_, _, _ = getFd(via, 2)
-		c.Close()
+		log.Println("send FUSE", err)
+		time.Sleep(time.Millisecond * 100)
 	}
-}
-
-func (ms *Server) closeFd() {
-	path := os.Getenv("_FUSE_FD_COMM")
-	if path == "" {
-		return
-	}
-	c, err := net.Dial("unix", path)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	via := c.(*net.UnixConn)
-	_, fds, err := getFd(via, 2)
-	if err != nil {
-		c.Close()
-		return
-	}
-	syscall.Close(fds[0])
-	putFd(c.(*net.UnixConn), []byte("CLOSE"), 0)
-	c.Close()
 }
 
 func (o *MountOptions) optionsStrings() []string {
@@ -584,7 +548,7 @@ func (ms *Server) Serve() {
 		close(reading.ready)
 	}
 
-	ms.closeFd()
+	_ = closeFuseFd()
 
 	ms.writeMu.Lock()
 	syscall.Close(ms.mountFd)

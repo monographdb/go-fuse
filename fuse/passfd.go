@@ -2,6 +2,7 @@ package fuse
 
 import (
 	"net"
+	"os"
 	"syscall"
 )
 
@@ -71,4 +72,41 @@ func putFd(via *net.UnixConn, msg []byte, fds ...int) error {
 
 	rights := syscall.UnixRights(fds...)
 	return syscall.Sendmsg(socket, msg, rights, nil, 0)
+}
+
+func sendFuseFd(path string, msg []byte, fd int) error {
+	conn, err := net.Dial("unix", path)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	_, fds, err := getFd(conn.(*net.UnixConn), 2)
+	if err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		_ = syscall.Close(fd)
+	}
+	return putFd(conn.(*net.UnixConn), msg, fd)
+}
+
+func closeFuseFd() error {
+	path := os.Getenv("_FUSE_FD_COMM")
+	if path == "" {
+		return nil
+	}
+	c, err := net.Dial("unix", path)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+	via := c.(*net.UnixConn)
+	_, fds, err := getFd(via, 2)
+	if err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		_ = syscall.Close(fd)
+	}
+	return nil
 }
